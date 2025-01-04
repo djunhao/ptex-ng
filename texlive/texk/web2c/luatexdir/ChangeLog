@@ -1,3 +1,59 @@
+2025-01-01 Luigi Scarso <luigi.scarso@gmail.com>
+	* New luaffi, support for aarch64.
+	* LuaTeX 1.20.0
+
+
+2024-12-30 Luigi Scarso <luigi.scarso@gmail.com>
+	* Increment tally in tprint also when doterm is true (thanks to user202729@protonmail.com).
+	* LuaTeX 1.19.4
+
+
+2024-12-30 Luigi Scarso <luigi.scarso@gmail.com>
+	* Avoid useless 0 beginbfrange endbfrange in pdf 
+	* LuaTeX 1.19.3
+
+
+2024-12-24 Luigi Scarso <luigi.scarso@gmail.com>
+	* For PNG, we no longer set the attr on the mask. If we get a report about dropping this 
+          we could add a 'maskattr' feature, but one should consider
+          to include a correct pdf of the image instead, it's more robust.
+	* LuaTeX 1.19.2
+
+
+2024-11-02  Luigi Scarso <luigi.scarso@gmail.com>
+	* Fixed a memory leak in token.put_next()  (thanks to user202729@protonmail.com)
+	* Fixed a memory leak in token.set_macro() implementation (thanks to user202729@protonmail.com)
+
+
+2024-10-12  Luigi Scarso <luigi.scarso@gmail.com>
+	* Handle token combiners in immediate assignments (H.Hagen)
+	* LuaTeX 1.19.0
+
+
+2024-09-15  Luigi Scarso <luigi.scarso@gmail.com>
+	* Fixed a typo in texfont.c (thanks to Josef Friedrich)
+
+
+2024-09-01  Luigi Scarso <luigi.scarso@gmail.com>
+        * Changed char utf8word[(4 * MAX_WORD_LEN) + 1] = { 0 };
+	in char utf8word[(4 * MAX_WORD_LEN) + 1] ;
+	in function  void hnj_hyphenation(halfword head, halfword tail) (thanks to user202729@protonmail.com)
+
+2024-05-11  Luigi Scarso <luigi.scarso@gmail.com>
+        * allow interactive deletion of \outer token, see https://tug.org/texmfbug/newbug.html#B142outer 
+
+
+2024-05-13  Luigi Scarso <luigi.scarso@gmail.com>
+	* Omitprocset and ptexprefix (force _ instead of . as separator) (H.Hagen)
+	* Bump to version 1.18.2
+
+2024-03-25  Luigi Scarso <luigi.scarso@gmail.com>
+	* Fixed synctex message on a math node with no zero glue
+
+2024-03-20  Luigi Scarso <luigi.scarso@gmail.com>
+	* Fixed wrong initialization of startup_filename (thanks to Wang Weixuan).
+
+
 2024-03-10  Karl Berry  <karl@tug.org>
 
 	* TL'24 release.

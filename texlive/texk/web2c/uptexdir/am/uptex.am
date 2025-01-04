@@ -1,4 +1,4 @@
-## $Id: uptex.am 70222 2024-02-28 04:19:31Z kakuto $
+## $Id: uptex.am 73271 2025-01-02 12:27:29Z takuji $
 ## texk/web2c/uptexdir/am/uptex.am: Makefile fragment for upTeX.
 ##
 ## Copyright 2016-2024 Karl Berry <tex-live@tug.org>
@@ -171,11 +171,17 @@ uptex_tests = \
 	uptexdir/uptriptest.test uptexdir/ptriptest.test \
 	uptexdir/upver.test \
 	uptexdir/upkcat.test \
-	uptexdir/wcfname.test uptexdir/wcfname0.test
+	uptexdir/wcfname.test uptexdir/wcfname0.test \
+	uptexdir/uptex-ofm.test uptexdir/uptex-prim.test \
+	uptexdir/uptex-lmr.test uptexdir/uptex-noto.test \
+	uptexdir/uptex-widow.test
 uptexdir/uptriptest.log uptexdir/ptriptest.log: \
 	uptex$(EXEEXT) dvitype$(EXEEXT) pltotf$(EXEEXT) tftopl$(EXEEXT)
 uptexdir/upver.log uptexdir/upkcat.log \
-	uptexdir/wcfname.log uptexdir/wcfname0.log: uptex$(EXEEXT)
+	uptexdir/wcfname.log uptexdir/wcfname0.log \
+	uptexdir/uptex-ofm.log uptexdir/uptex-prim.log \
+	uptexdir/uptex-lmr.log uptexdir/uptex-noto.log \
+	uptexdir/uptex-widow.log: uptex$(EXEEXT)
 upweb_tests = \
 	uptexdir/upbibtex.test \
 	uptexdir/updvitype.test \
@@ -232,8 +238,10 @@ DISTCLEANFILES += uptests/memtest.bib uptests/memtest?.*
 ## uptexdir/updvitype.test
 EXTRA_DIST += uptexdir/tests/uptex3.tex uptexdir/tests/uptex3.dvi \
 	uptexdir/tests/uptex4.tex uptexdir/tests/uptex4.dvi \
-	uptexdir/tests/uptex3a.typ uptexdir/tests/uptex4a.typ
-DISTCLEANFILES += uptests/xstory.dvityp uptests/xpagenum.typ uptests/x*ptex[34]*.typ
+	uptexdir/tests/uptex5.tex uptexdir/tests/uptex5.dvi \
+	uptexdir/tests/uptex3a.typ uptexdir/tests/uptex4a.typ \
+	uptexdir/tests/uptex5a.typ
+DISTCLEANFILES += uptests/xstory.dvityp uptests/xpagenum.typ uptests/x*ptex[345]*.typ
 ## uptexdir/uppltotf.test
 DISTCLEANFILES += uptests/xcmr10.tfm
 ## uptexdir/uptftopl.test
@@ -245,8 +253,9 @@ EXTRA_DIST += uptexdir/tests/umin10.pl uptexdir/tests/umin10.tfm
 EXTRA_DIST += uptexdir/tests/utmin10.pl uptexdir/tests/utmin10.tfm
 DISTCLEANFILES += uptests/x*min10.* uptests/xchcode*.*
 ## uptexdir/newjfm.test
-EXTRA_DIST += uptexdir/tests/testnewu.pl uptexdir/tests/testnewu.tfm
-DISTCLEANFILES += uptests/xtestnewu.*
+EXTRA_DIST += uptexdir/tests/testnewu.pl uptexdir/tests/testnewu.tfm \
+	uptexdir/tests/testnewu8.pl uptexdir/tests/testnewu8.tfm
+DISTCLEANFILES += uptests/xtestnewu*.*
 ## uptexdir/uparse.test
 EXTRA_DIST += uptexdir/tests/uparse.pl uptexdir/tests/uparse.tfm
 DISTCLEANFILES += uptests/xuparse.* uptests/yuparse.*
@@ -260,12 +269,30 @@ DISTCLEANFILES += uptests/ygk256*.*
 DISTCLEANFILES += uptests/xskipjfmp.*
 ## uptexdir/uptriptest
 EXTRA_DIST += uptexdir/uptrip/uptrip.diffs uptexdir/uptrip/texmf.cnf
+DISTCLEANFILES += uptrip.diffs
+
+## uptexdir/uptex-ofm.test
+EXTRA_DIST += uptexdir/tests/up-ofm.tex uptexdir/tests/up-ofm.log \
+	uptexdir/tests/up-ofma.typ
+DISTCLEANFILES += up-ofm.*
+## uptexdir/uptex-prim.test
+EXTRA_DIST += uptexdir/tests/up-prim.tex uptexdir/tests/up-prim.log
+DISTCLEANFILES += up-prim.*
+## uptexdir/uptex-lmr.test
+EXTRA_DIST += uptexdir/tests/lmr1.tex uptexdir/tests/up-lmr1.log \
+	uptexdir/tests/lmr2.tex uptexdir/tests/up-lmr2.log
+DISTCLEANFILES += up-lmr*.*
+## uptexdir/uptex-noto.test
+EXTRA_DIST += uptexdir/tests/noto1.tex uptexdir/tests/up-noto1.log
+DISTCLEANFILES += up-noto*.*
+## uptexdir/uptex-widow.test
+EXTRA_DIST += uptexdir/tests/jchwidow.tex uptexdir/tests/up-jchwidow.log
+DISTCLEANFILES += up-jchwidow.*
+
 uptrip.diffs: uptex$(EXEEXT) dvitype$(EXEEXT) pltotf$(EXEEXT) tftopl$(EXEEXT)
 	$(triptrap_diffs) $@
 .PHONY: uptrip-clean
 uptrip-clean:
 	rm -rf uptripdir
-
-DISTCLEANFILES += uptrip.diffs
 
 # (end of uptex.am)

@@ -52,8 +52,11 @@ attachfile2/pdfatfi.pl
 authorindex/authorindex
 bib2gls/bib2gls.sh
 bib2gls/convertgls2bib.sh
+bib2gls/datatool2bib.sh
 bibcop/bibcop.pl
 bibtexperllibs/ltx2unitxt
+bookshelf/bookshelf-listallfonts
+bookshelf/bookshelf-mkfontsel
 bundledoc/arlatex
 bundledoc/bundledoc
 cachepic/cachepic.tlu
@@ -87,6 +90,8 @@ epspdf/epspdf.tlu
 epspdf/epspdftk.tcl
 epstopdf/epstopdf.pl
 exceltex/exceltex
+expltools/explcheck.lua
+extractbb/extractbb.lua
 fig4latex/fig4latex
 findhyph/findhyph
 fontools/afm2afm
@@ -132,6 +137,7 @@ memoize/memoize-clean.py
 memoize/memoize-extract.pl
 memoize/memoize-extract.py
 mf2pt1/mf2pt1.pl
+minted/latexminted.py
 mkgrkindex/mkgrkindex
 mkjobtexmf/mkjobtexmf.pl
 mkpic/mkpic
@@ -150,6 +156,7 @@ pfarrei/pfarrei.tlu
 pkfix-helper/pkfix-helper
 pkfix/pkfix.pl
 pmxchords/pmxchords.lua
+ppmcheckpdf/ppmcheckpdf.lua
 pst2pdf/pst2pdf.pl
 ptex-fontmaps/kanji-config-updmap-sys.sh
 ptex-fontmaps/kanji-config-updmap-user.sh
@@ -164,6 +171,7 @@ rubik/rubikrotation.pl
 runtexshebang/runtexshebang.lua
 spix/spix.py
 splitindex/splitindex.pl
+sqltex/sqltex
 srcredact/srcredact.pl
 sty2dtx/sty2dtx.pl
 svn-multi/svn-multi.pl
@@ -197,6 +205,7 @@ texplate/texplate.sh
 thumbpdf/thumbpdf.pl
 tlcockpit/tlcockpit.sh
 tlshell/tlshell.tcl
+typog/typog-grep.pl
 ulqda/ulqda.pl
 urlbst/urlbst
 vpe/vpe.pl

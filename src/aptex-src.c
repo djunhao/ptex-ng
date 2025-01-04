@@ -1,6 +1,6 @@
 /*
    Copyright 2007 TeX Users Group
-   Copyright 2014-2023 Clerk Ma
+   Copyright 2014-2024 Clerk Ma
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -122,7 +122,7 @@ static void print_aptex_usage (void)
 
 static void print_aptex_version (void)
 {
-  printf("Copyright 2014-2023 Clerk Ma.\n"
+  printf("Copyright 2014-2024 Clerk Ma.\n"
     "banner: \"%s\"\n"
     "base: Y&Y TeX 2.3.0, pTeX%s, upTeX%s\n",
     banner, pTeX_version_string, upTeX_version_string);
@@ -3959,6 +3959,7 @@ static void do_initex (void)
     del_code(k) = -1;
 
   del_code('.') = 0;
+  show_stream = -1;
 
   for (k = dimen_base; k <= eqtb_size; k++)
     eqtb[k].cint = 0;
@@ -5117,6 +5118,7 @@ start_of_TEX:
     init_randoms(random_seed);
     magic_offset = str_start[886] - 9 * ord_noad; /* math_spacing = 886 */
 
+    // @<Initialize the print |selector| based on |interaction|@>;
     if (interaction == batch_mode)
       selector = no_print;
     else
@@ -6426,6 +6428,9 @@ static void init_prim (void)
   primitive("pdfminorversion", assign_int, int_base + pdf_minor_version_code);
   primitive("synctex", assign_int, int_base + synctex_code);
   primitive("tracingstacklevels", assign_int, int_base + tracing_stack_levels_code);
+  primitive("partokenname", partoken_name, 0);
+  primitive("partokencontext", assign_int, int_base + partoken_context_code);
+  primitive("showstream", assign_int, int_base + show_stream_code);
   /* sec 0248 */
   primitive("parindent", assign_dimen, dimen_base + par_indent_code);
   primitive("mathsurround", assign_dimen, dimen_base + math_surround_code);
@@ -7043,7 +7048,7 @@ void slow_print (integer s)
 // prints string |s| at beginning of line
 void print_nl (const char * s)
 {
-  if (((term_offset > 0) && (odd(selector))) ||
+  if ((selector < no_print) || ((term_offset > 0) && (odd(selector))) ||
       ((file_offset > 0) && (selector >= log_only)))
     print_ln();
 
@@ -11321,6 +11326,10 @@ static void print_param (integer n)
       print_esc("tracingstacklevels");
       break;
 
+    case show_stream_code:
+      print_esc("showstream");
+      break;
+
     default:
       prints("[unknown integer parameter!]");
       break;
@@ -11861,6 +11870,10 @@ void print_cmd_chr (quarterword cmd, halfword chr_code)
 
     case vrule:
       print_esc("vrule");
+      break;
+
+    case partoken_name:
+      print_esc("partokenname");
       break;
 
     case par_end:
@@ -14237,7 +14250,7 @@ void back_input (void)
 {
   pointer p;  // {a token list of length one}
 
-  while ((state == token_list) && (loc == null) && (token_type != v_template))
+  while ((loc == null) && (token_type != v_template))
     end_token_list(); // {conserve stack space}
 
   p = get_avail();
@@ -14800,7 +14813,7 @@ found:
     } while (!(info(r) == end_match_token));
   }
 
-  while ((state == token_list) && (loc == null) && (token_type != v_template))
+  while ((loc == null) && (token_type != v_template))
     end_token_list();
 
   begin_token_list(ref_count, macro);
@@ -17123,12 +17136,18 @@ restart:
     }
     else if (cur_tok < cs_token_flag + single_base)
       cur_val = cur_tok - cs_token_flag - active_base;
+    else if (cur_tok < cs_token_flag + null_cs)
+      cur_val = cur_tok - cs_token_flag - single_base;
     else
     {
-      if (!(cur_cmd < kanji))
+      m = text(cur_tok - cs_token_flag);
+      if (str_start[m + 1] - str_start[m] == multistrlen(str_pool, str_start[m + 1], str_start[m]))
+        cur_val = fromBUFF(str_pool, str_start[m + 1], str_start[m]);
+      else
+      {
         cur_cmd = invalid_char;
-
-      cur_val = cur_tok - cs_token_flag - single_base;
+        cur_val = 256;
+      }
     }
 
     if ((cur_val > 255) && (cur_cmd < kanji))
@@ -17200,8 +17219,7 @@ restart:
 
     while (true)
     {
-      if ((cur_tok < zero_token + radix) && (cur_tok >= zero_token) &&
-        (cur_tok <= zero_token + 9))
+      if ((cur_tok < zero_token + radix) && (cur_tok >= zero_token) && (cur_tok <= zero_token + 9))
         d = cur_tok - zero_token;
       else if (radix == 16)
       {
@@ -17496,9 +17514,9 @@ not_found:
     if (mag != 1000)
     {
       cur_val = xn_over_d(cur_val, 1000, mag);
-      f = (1000 * f + 65536 * ng_remainder) / mag;
-      cur_val = cur_val + (f / 65536);
-      f = f % 65536;
+      f = (1000 * f + 0200000 * ng_remainder) / mag;
+      cur_val = cur_val + (f / 0200000);
+      f = f % 0200000;
     }
   }
 
@@ -17542,13 +17560,13 @@ not_found:
   }
 
   cur_val = xn_over_d(cur_val, num, denom);
-  f = (num * f + 65536 * ng_remainder) / denom;
-  cur_val = cur_val + (f / 65536);
-  f = f % 65536;
+  f = (num * f + 0200000 * ng_remainder) / denom;
+  cur_val = cur_val + (f / 0200000);
+  f = f % 0200000;
 
 done2:
 attach_fraction:
-  if (cur_val >= 16384)
+  if (cur_val >= 040000)
     arith_error = true;
   else
     cur_val = cur_val * unity + f;
@@ -17562,7 +17580,7 @@ done:
   }
 
 attach_sign:
-  if (arith_error || (abs(cur_val) >= 1073741824))
+  if (arith_error || (abs(cur_val) >= 010000000000))
   {
     print_err("Dimension too large");
     help2("I can't work with sizes bigger than about 19 feet.",
@@ -17644,7 +17662,7 @@ void scan_glue (small_number level)
   cur_val = q;
 }
 
-#define default_rule 26214
+#define default_rule 26214 // 0.4pt
 
 static pointer scan_rule_spec (void)
 {
@@ -17737,7 +17755,7 @@ static pointer str_toks_cat (pool_pointer b, uint32_t cat)
   return p;
 }
 
-static pointer str_toks(pool_pointer b)
+static pointer str_toks (pool_pointer b)
 {
   return str_toks_cat(b, 0);
 }
@@ -17889,7 +17907,7 @@ static char * aptex_find_file (str_number s)
   return file_name_kpse;
 }
 
-static void get_creation_date()
+static void get_creation_date (void)
 {
   size_t date_len;
   char * date_str;
@@ -19625,7 +19643,7 @@ str_number w_make_name_string (word_file f)
   return make_name_string();
 }
 
-static void scan_file_name_braced(void);
+static void scan_file_name_braced (void);
 
 static void scan_file_name (void)
 {
@@ -19690,7 +19708,7 @@ done:
   warning_index = save_warning_index; // {restore |warning_index|}
 }
 
-static void scan_file_name_braced(void)
+static void scan_file_name_braced (void)
 {
   small_number save_scanner_status; // {|scanner_status| upon entry}
   pointer save_def_ref; // {|def_ref| upon entry, important if inside `\.{\\message}}
@@ -19734,7 +19752,7 @@ static void scan_file_name_braced(void)
   stop_at_space = save_stop_at_space; // {restore |stop_at_space|}
 }
 
-void pack_job_name_(str_number s)
+void pack_job_name_ (str_number s)
 {
   cur_area = 335; /* "" */
   cur_ext  = s;
@@ -19742,7 +19760,7 @@ void pack_job_name_(str_number s)
   pack_cur_name();
 }
 
-void prompt_file_name_(const char * s, str_number e)
+void prompt_file_name_ (const char * s, str_number e)
 {
   uint32_t k;
 
@@ -20510,7 +20528,7 @@ static void char_warning (internal_font_number f, eight_bits c)
   }
 }
 
-static void char_warning_jis(internal_font_number f, KANJI_code jc)
+static void char_warning_jis (internal_font_number f, KANJI_code jc)
 {
   if (tracing_lost_chars > 0)
   {
@@ -20832,9 +20850,9 @@ done:
 // PDF output functions from texlive/texk/dvipdfm-x
 
 /* from "dvipdfm-x/fontmap.h" */
-extern void pdf_init_fontmaps(void);
-extern void pdf_close_fontmaps(void);
-extern int pdf_load_fontmap_file(const char *filename, int map_mode);
+extern void pdf_init_fontmaps (void);
+extern void pdf_close_fontmaps (void);
+extern int pdf_load_fontmap_file (const char *filename, int map_mode);
 
 /* from "dvipdfm-x/pdfdoc.h" */
 struct pdf_dev_setting {
@@ -20873,37 +20891,37 @@ struct pdf_setting
     struct pdf_obj_setting object;
 };
 
-extern void pdf_open_document(const char *filename, const char * creator, 
+extern void pdf_open_document (const char *filename, const char * creator, 
   const unsigned char * id1, const unsigned char * id2, struct pdf_setting settings);
-extern void pdf_close_document(void);
-extern void pdf_doc_begin_page(double scale, double x_origin, double y_origin);
-extern void pdf_doc_end_page(void);
+extern void pdf_close_document (void);
+extern void pdf_doc_begin_page (double scale, double x_origin, double y_origin);
+extern void pdf_doc_end_page (void);
 typedef struct pdf_rect {
   double llx, lly, urx, ury;
 } pdf_rect;
-extern void pdf_doc_set_mediabox(unsigned page_no, const pdf_rect *mediabox);
+extern void pdf_doc_set_mediabox (unsigned page_no, const pdf_rect *mediabox);
 
 /* from "dvipdfm-x/pdfobj.h" */
-extern long pdf_output_stats(void);
+extern long pdf_output_stats (void);
 
 /* from "dvipdfm-x/pdfdev.h" */
-extern void graphics_mode(void);
+extern void graphics_mode (void);
 typedef signed long spt_t;
-extern void pdf_dev_set_rule(spt_t xpos, spt_t ypos, spt_t width, spt_t height);
-extern void pdf_dev_set_dirmode(int dir_mode);
-extern void pdf_dev_begin_actualtext(uint16_t * unicodes, int len);
-extern void pdf_dev_end_actualtext(void);
+extern void pdf_dev_set_rule (spt_t xpos, spt_t ypos, spt_t width, spt_t height);
+extern void pdf_dev_set_dirmode (int dir_mode);
+extern void pdf_dev_begin_actualtext (uint16_t * unicodes, int len);
+extern void pdf_dev_end_actualtext (void);
 
 /* from "dvipdfm-x/pdflimits.h" */
 #define PDF_VERSION_MIN 13
 #define PDF_VERSION_MAX 20
 
 /* from "dvipdfm-x/specials.h" */
-extern int spc_exec_at_begin_document(void);
-extern void spc_exec_at_end_document(void);
-extern int spc_exec_at_begin_page(void);
-extern int spc_exec_at_end_page(void);
-extern int spc_exec_special(const char *buffer, long size,
+extern int spc_exec_at_begin_document (void);
+extern void spc_exec_at_end_document (void);
+extern int spc_exec_at_begin_page (void);
+extern int spc_exec_at_end_page (void);
+extern int spc_exec_special (const char *buffer, long size,
  double x_user, double y_user, double dpx_mag, int * is_drawable, pdf_rect *rect);
 
 /* from "dvipdfm-x/dvi.c" */
@@ -20912,10 +20930,10 @@ extern int dvi_locate_native_font (const char *filename, uint32_t fidx,
   spt_t ptsize, int layout_dir, int extend, int slant, int embolden);
 
 /* from "src/libdpx/ng/dvi_ng.c" */
-extern void ng_set(int32_t ch, int ng_font_id, int32_t h, int32_t v);
-extern void ng_gid(uint16_t gid, int ng_font_id, int32_t h, int32_t v);
-extern void ng_layer(uint16_t gid, int ng_font_id, int32_t h, int32_t v, uint8_t r, uint8_t g, uint8_t b);
-extern void spc_moveto(int32_t, int32_t);
+extern void ng_set (int32_t ch, int ng_font_id, int32_t h, int32_t v);
+extern void ng_gid (uint16_t gid, int ng_font_id, int32_t h, int32_t v);
+extern void ng_layer (uint16_t gid, int ng_font_id, int32_t h, int32_t v, uint8_t r, uint8_t g, uint8_t b);
+extern void spc_moveto (int32_t, int32_t);
 
 /* dvipdfm-x/dvipdfmx.c */
 extern int dpx_util_format_asn_date (char *, int);
@@ -20925,9 +20943,9 @@ typedef struct {
   unsigned char buf[64];
   int count;
 } MD5_CONTEXT;
-extern void MD5_init(MD5_CONTEXT *);
-extern void MD5_write(MD5_CONTEXT *, const unsigned char *, unsigned int);
-extern void MD5_final(unsigned char *, MD5_CONTEXT *);
+extern void MD5_init (MD5_CONTEXT *);
+extern void MD5_write (MD5_CONTEXT *, const unsigned char *, unsigned int);
+extern void MD5_final (unsigned char *, MD5_CONTEXT *);
 
 static void dpx_compute_id_string (unsigned char * id, const char * producer, const char * dvi_file_name, const char * pdf_file_name)
 {
@@ -21228,7 +21246,7 @@ static void ship_out (pointer p)
 #ifndef APTEX_DVI_ONLY
     {
       struct pdf_setting aptex_pdf_setting;
-      char * aptex_producer = "Asiatic pTeX 2023";
+      char * aptex_producer = "Asiatic pTeX 2024";
       int aptex_pdf_version;
       unsigned char aptex_id1[16], aptex_id2[16];
 
@@ -34323,6 +34341,7 @@ void new_interaction (void)
   print_ln();
   interaction = cur_chr;
 
+  // @<Initialize the print |selector| based on |interaction|@>;
   if (interaction == batch_mode)
     selector = no_print;
   else
@@ -34486,6 +34505,8 @@ static void show_whatever (void)
   {
     case show_lists_code:
       {
+        // @<Adjust |selector| based on |show_stream|@>
+        adjust_selector_based_on_show_stream();
         begin_diagnostic();
         show_activities();
       }
@@ -34496,6 +34517,8 @@ static void show_whatever (void)
       {
         scan_register_num();
         fetch_box(p);
+        // @<Adjust |selector| based on |show_stream|@>
+        adjust_selector_based_on_show_stream();
         begin_diagnostic();
         print_nl("> \\box");
         print_int(cur_val);
@@ -34512,6 +34535,8 @@ static void show_whatever (void)
       // @<Show the current meaning of a token, then |goto common_ending|@>
       {
         get_token();
+        // @<Adjust |selector| based on |show_stream|@>
+        adjust_selector_based_on_show_stream();
 
         if (interaction == error_stop_mode)
           wake_up_terminal();
@@ -34552,6 +34577,8 @@ static void show_whatever (void)
 
     case show_groups:
       {
+        // @<Adjust |selector| based on |show_stream|@>
+        adjust_selector_based_on_show_stream();
         begin_diagnostic();
         show_save_groups();
       }
@@ -34559,6 +34586,8 @@ static void show_whatever (void)
 
     case show_ifs:
       {
+        // @<Adjust |selector| based on |show_stream|@>
+        adjust_selector_based_on_show_stream();
         begin_diagnostic();
         print_nl("");
         print_ln();
@@ -34610,6 +34639,8 @@ static void show_whatever (void)
       */
       {
         p = the_toks();
+        // @<Adjust |selector| based on |show_stream|@>
+        adjust_selector_based_on_show_stream();
 
         if (interaction == error_stop_mode)
           wake_up_terminal();
@@ -34635,27 +34666,43 @@ static void show_whatever (void)
     }
 
 common_ending:
-  if (interaction < error_stop_mode)
+  if (selector < no_print)
   {
-    help0();
-    decr(error_count);
-  }
-  else if (tracing_online > 0)
-  {
-    help3("This isn't an error message; I'm just \\showing something.",
-      "Type `I\\show...' to show more (e.g., \\show\\cs,",
-      "\\showthe\\count10, \\showbox255, \\showlists).");
+    print_ln();
+
+    // @<Initialize the print |selector| based on |interaction|@>;
+    if (interaction == batch_mode)
+      selector = no_print;
+    else
+      selector = term_only;
+
+    if (log_opened)
+      selector = selector + 2;
   }
   else
   {
-    help5("This isn't an error message; I'm just \\showing something.",
-      "Type `I\\show...' to show more (e.g., \\show\\cs,",
-      "\\showthe\\count10, \\showbox255, \\showlists).",
-      "And type `I\\tracingonline=1\\show...' to show boxes and",
-      "lists on your terminal as well as in the transcript file.");
-  }
+    if (interaction < error_stop_mode)
+    {
+      help0();
+      decr(error_count);
+    }
+    else if (tracing_online > 0)
+    {
+      help3("This isn't an error message; I'm just \\showing something.",
+        "Type `I\\show...' to show more (e.g., \\show\\cs,",
+        "\\showthe\\count10, \\showbox255, \\showlists).");
+    }
+    else
+    {
+      help5("This isn't an error message; I'm just \\showing something.",
+        "Type `I\\show...' to show more (e.g., \\show\\cs,",
+        "\\showthe\\count10, \\showbox255, \\showlists).",
+        "And type `I\\tracingonline=1\\show...' to show boxes and",
+        "lists on your terminal as well as in the transcript file.");
+    }
 
-  error();
+    error();
+  }
 }
 
 static void new_whatsit (small_number s, small_number w)
@@ -34880,6 +34927,14 @@ static void handle_right_brace (void)
       break;
 
     case vbox_group:
+      if ((partoken_context > 0) && (mode == hmode))
+      {
+        back_input();
+        cur_tok = par_token;
+        back_input();
+        token_type = inserted;
+      }
+      else
       {
         end_graf();
         package(0);
@@ -34887,6 +34942,14 @@ static void handle_right_brace (void)
       break;
 
     case vtop_group:
+      if ((partoken_context > 0) && (mode == hmode))
+      {
+        back_input();
+        cur_tok = par_token;
+        back_input();
+        token_type = inserted;
+      }
+      else
       {
         end_graf();
         package(vtop_code);
@@ -34894,6 +34957,14 @@ static void handle_right_brace (void)
       break;
 
     case insert_group:
+      if ((partoken_context > 1) && (mode == hmode))
+      {
+        back_input();
+        cur_tok = par_token;
+        back_input();
+        token_type = inserted;
+      }
+      else
       {
         end_graf();
         q = split_top_skip;
@@ -34957,6 +35028,14 @@ static void handle_right_brace (void)
       break;
 
     case output_group:
+      if ((partoken_context > 1) && (mode == hmode))
+      {
+        back_input();
+        cur_tok = par_token;
+        back_input();
+        token_type = inserted;
+      }
+      else
       {
         if ((loc != 0) || ((token_type != output_text) && (token_type != backed_up)))
         {
@@ -35028,6 +35107,14 @@ static void handle_right_brace (void)
       break;
 
     case no_align_group:
+      if ((partoken_context > 1) && (mode == hmode))
+      {
+        back_input();
+        cur_tok = par_token;
+        back_input();
+        token_type = inserted;
+      }
+      else
       {
         end_graf();
         unsave();
@@ -35036,6 +35123,14 @@ static void handle_right_brace (void)
       break;
 
     case vcenter_group:
+      if ((partoken_context > 0) && (mode == hmode))
+      {
+        back_input();
+        cur_tok = par_token;
+        back_input();
+        token_type = inserted;
+      }
+      else
       {
         end_graf();
         unsave();
@@ -35562,7 +35657,15 @@ reswitch:
 
     case vmode + endv:
     case hmode + endv:
-      do_endv();
+      if ((partoken_context > 1) && (mode == hmode))
+      {
+        back_input();
+        cur_tok = par_token;
+        back_input();
+        token_type = inserted;
+      }
+      else
+        do_endv();
       break;
 
     case any_mode(end_cs_name):
@@ -35782,6 +35885,17 @@ reswitch:
       {
         get_token();
         save_for_after(cur_tok);
+      }
+      break;
+
+    case any_mode(partoken_name):
+      {
+        get_token();
+        if (cur_cs > 0)
+        {
+          par_loc = cur_cs;
+          par_token = cur_tok;
+        }
       }
       break;
 

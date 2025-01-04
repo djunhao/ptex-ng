@@ -1,4 +1,4 @@
-## $Id: ptex.am 70222 2024-02-28 04:19:31Z kakuto $
+## $Id: ptex.am 73271 2025-01-02 12:27:29Z takuji $
 ## texk/web2c/ptexdir/am/ptex.am: Makefile fragment for pTeX.
 ##
 ## Copyright 2015-2024 Karl Berry <tex-live@tug.org>
@@ -107,9 +107,14 @@ EXTRA_DIST += \
 ptex_tests = \
 	ptexdir/ptriptest.test \
 	ptexdir/pver.test \
-	ptexdir/wcfname.test
+	ptexdir/wcfname.test \
+	ptexdir/ptex-ctrlsym.test \
+	ptexdir/ptex-prntknj.test \
+	ptexdir/ptex-ucs.test ptexdir/ptex-widow.test
 ptexdir/ptriptest.log: ptex$(EXEEXT) dvitype$(EXEEXT) pltotf$(EXEEXT) tftopl$(EXEEXT)
-ptexdir/pver.log ptexdir/wcfname.log: ptex$(EXEEXT)
+ptexdir/pver.log ptexdir/wcfname.log \
+	ptexdir/ptex-ctrlsym.log ptexdir/ptex-prntknj.log \
+	ptexdir/ptex-ucs.log ptexdir/ptex-widow.log: ptex$(EXEEXT)
 
 EXTRA_DIST += $(ptex_tests) $(pweb_tests)
 DISTCLEANFILES += $(pweb_programs:=.c) $(pweb_programs:=.h) \
@@ -166,12 +171,34 @@ EXTRA_DIST += ptexdir/tests/skipjfmp.pl ptexdir/tests/skipjfmp.tfm
 DISTCLEANFILES += ptests/xskipjfmp.*
 ## ptexdir/ptriptest
 EXTRA_DIST += ptexdir/ptrip/ptrip.diffs ptexdir/ptrip/texmf.cnf
+DISTCLEANFILES += ptrip.diffs
+
+## ptex-ctrlsym.test
+EXTRA_DIST += ptexdir/tests/ctrlsym.tex ptexdir/tests/ctrlsym.log \
+	ptexdir/tests/endlinechar.tex ptexdir/tests/endline.log \
+	ptexdir/tests/control-symbol.tex ptexdir/tests/jctrlsym.log \
+	ptexdir/tests/p-endlinea.typ ptexdir/tests/p-jctrlsyma.typ \
+	ptexdir/tests/let_char_token.tex ptexdir/tests/chartoken.log \
+	ptexdir/tests/ptexlineendmode.tex ptexdir/tests/p-lineenda.typ
+DISTCLEANFILES += p-ctrlsym.log p-ctrlsym.out p-ctrlsym.tex \
+	p-endline*.* p-jctrlsym*.* p-chartoken.* p-lineend.*
+## ptexdir/ptex-prntknj.test
+EXTRA_DIST += ptexdir/tests/printkanji.tex \
+	ptexdir/tests/pknj-s.log ptexdir/tests/pknj-e.log \
+	ptexdir/tests/p-pknj-sa.typ ptexdir/tests/p-pknj-ea.typ
+DISTCLEANFILES += p-pknj-*.*
+## ptexdir/ptex-ucs.test
+EXTRA_DIST += ptexdir/tests/ucs.tex ptexdir/tests/ucs-s.log \
+	ptexdir/tests/ucs-e.log
+DISTCLEANFILES += p-ucs*.*
+## ptexdir/ptex-widow.test
+EXTRA_DIST += ptexdir/tests/p-jchwidow.log
+DISTCLEANFILES += p-jchwidow*.*
+
 ptrip.diffs: ptex$(EXEEXT) dvitype$(EXEEXT) pltotf$(EXEEXT) tftopl$(EXEEXT)
 	$(triptrap_diffs) $@
 .PHONY: ptrip-clean
 ptrip-clean:
 	rm -rf ptripdir
-
-DISTCLEANFILES += ptrip.diffs
 
 # (end of ptex.am)
