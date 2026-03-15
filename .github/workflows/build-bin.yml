@@ -24,7 +24,7 @@ jobs:
       - name: build
         run: ./build-gcc/build-aptex.sh
       - name: upload artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: aptex-macOS-latest.tar
           path: |
