@@ -28,7 +28,6 @@ jobs:
         with:
           name: aptex-macOS-latest.tar
           path: |
-            ./src/ptex-ng
-            ./src/lsotfea
+            ./src/aptex
       - name: test
         run: cd test && sh run.sh
