@@ -2,7 +2,7 @@ name: Build Binary
 
 on:
   push:
-    branches: [ master ]
+    branches: [ master,djunhao-patch-2 ]
   pull_request:
     branches: [ master ]
 
