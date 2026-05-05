@@ -43,3 +43,23 @@ jobs:
           file: aptex-macOS.tar.gz
           asset_name: app-macOS.tar.gz
           tag: ${{ github.ref }}-${{ github.run_id }}
+
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up MSVC
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: amd64
+      - name: Build with nmake
+        run: |
+          cd build-msvc
+          build-aptex.bat
+        shell: cmd
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: aptex-windows
+          path: |
+            build-msvc/aptex.exe
